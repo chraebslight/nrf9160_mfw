@@ -1,0 +1,1389 @@
+mfw_nrf9160 release notes
+-------------------------------
+
+** Introduction to the mfw_nrf9160 release notes **
+
+These release notes describe the changes in the mfw_nrf9160 firmware from version to version.
+The release notes are intended to list briefly all relevant changes in a given version.
+
+Copyright (c) Nordic Semiconductor ASA. All rights reserved.
+
+*** mfw_nrf9160_1.2.1
+*********************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 18, 19, 20, 25, 26,
+28 and 66.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 19, 20, 25, 26,
+28 and 66.
+
+This release is aligned with v1.4 of nRF91 AT command reference guide.
+
+It is recommended to use the latest version of nRF Connect and nRF Connect Programmer tools.
+
+*** New functionality
+*********************
+- Support for new module nRF9160-SIxA-B1 including nPM6000 support and quiescent current consumption
+  reduction on PWR OFF mode.
+- Added AT%XPDNCFG support for always-on initial PDN connection. With this feature configured, modem
+  will try to keep the initial PDN connection (activated during Attach procedure) alive until PDN
+  connection or modem deactivation is requested by the client. Keeping the initial PDN connection
+  alive means that PDN connection re-activation is attempted and even re-Attached if re-activation
+  does not help.
+- Added AT command AT%BSKGEN and AT%BSKCHCK support for generating and storing PSK key for bootstrap
+  type of services.
+- Added AT command AT%XPOFWARN for configuring and setting voltage levels for modem deactivation and
+  power off warning indication when battery voltage is running low.
+- Added support for TLS extension Server Name Indication (SNI).
+- Added support for (D)TLS cache over power cycle.
+- Added support of burst (discontinuous) mode TX to AT%XRFTEST to better support synching to various
+  testing equipment.
+- Added support of handling of relative frequency error for the AFC testing of AT%XRFTEST.
+- Added support for 3GPP 36.509 defined Test Loop H.
+
+*** Changes
+***********
+- E-UTRA Cat-M1 Band 17 support removed.
+- Updated the contents of carrier specific EF-Terminal Support Table based on latest specification.
+- Changed and improved completing of Control Plane Service Request procedures. Change improves
+  scenarios where REL14 level network sends security protected PDUs to UE.
+- Radio Link Monitoring and Radio Link Failure IN-SYNC and OUT-SYNC threshold values adjusted for
+  more robust mobility performance.
+- Changed carrier specific band configurations. Configured based on UICC in use.
+- Finetuned RSRP, RSRQ and SNR values reported with AT command interface. RSRP and RSRQ and SNR are
+  filtered over DRX cycles corresponding approximately the length of 6 seconds.
+- Changed AT%XRFTEST Tx test CW offset as follows: M1 401.25 kHz, NB1 48.75 (was 255 kHz for both).
+- AT%XRFTEST sensor test with <param0> = 1 now returns the SoC internal temperature sensor reading.
+
+*** Bug fixes
+*************
+- Correction for handling FOTA rollback in case of security or watchdog reset. In case if FOTA
+  delta binary is still available in the device and security or watchdog reset triggered, it caused
+  unintentional modem firmware rollback.
+- Correction for a rare scenario where UE initiated detach request transmission was internally
+  blocked and UE was not able to signal switch-off Detach to network.
+- Correction to ensure that UICC polling timer is restarted correctly after presence detection is
+  stopped.
+- Correction to background PLMN search in RRC IDLE. If manual PLMN search is triggered when paging
+  reception is about to start it may cause performance degradation for paging reception.
+- Correction for a rare occasion where UE was jammed if switch-off (AT+CFUN=4) was triggered during
+  recently started Attach procedure.
+- Correction for registration status indication to AT clients: During Airplane mode the status shall
+  be only “not registered” instead of “not registered - trying”.
+- Correction for EMM functionality so that T3440 is stopped at the reception of ESM DATA TRANSPORT.
+  This enables UE to send uplink PDUs again and there will be less buffered UL data.
+- Corrected the conditions for sending EVENT DOWNLOAD (Location Status - Normal Service) from USAT
+  module to UICC.
+- Correction for the use case where re-Attach triggered by protocol failed in case APN was
+  configured for the initial PDN connection.
+- Correction to USIM refresh handling during user data transfer.
+- Minor Rx gain performance improvement during neighbor measurement and search in EMTC-M1 to improve
+  cell search performance.
+- Correction for a scenario where USIM card was removed while UE was in PSM. UE failed to camp on
+  cell and signal Detach Request in this case.
+- Trace configuration corrected, NB-IoT PRACH logging objects were not visible in modem logs.
+- Correction for NB-IoT neighbor measurements, which may have caused that occasionally not the most
+  suitable cell was selected after connection release.
+- NB-IoT stability and performance improvements when invalid downlink subframe configurations are
+  configured from network.
+- Correction for PVT message handling. GNSS blocked by LTE flag is not properly set beyond fix
+  retry period.
+- Correction for AGPS / GNSS flash file storage handling, improving robustness of the periodic fix
+  after AGPS is used for a start.
+- Correction for clock calibration control which may have delayed deep sleep entry in combined
+  NB-IoT and GNSS tracking mode and may slightly increase power consumption.
+- Correction for handover functionality in shared RAN environment. In some occasional cases
+  unintentional TAU was transmitted after handover.
+- Correction for halt caused by crossover scenario of LTE registration and de-registration. Attach
+  abnormal case F.
+- Correction for modem instability in case if eligible system information is not scheduled in
+  current cell.
+- Improved stability is case of concurrent MT and MO data triggered. If both MT data from network
+  and MO data from application are triggered at the same time this may occasionally lead to a modem
+  reset.
+- Correction for PTW re-setting to manufacturer default values when using AT%XPTW command. Earlier
+  zero values were set instead of defaults.
+- Correction for potential SIB-NB reception instability and performance in networks supporting new
+  3GPP Release 14 NB-IoT system information blocks.
+- Correction for possible Handover failure in RRC Connected mode to target cell when target
+  neighbor is already found in RRC Idle mode and measured and reported in RRC Connected mode.
+- Correction for serving cell Srxlev and Srxqual in Cat-M1 cell selection and reselection criteria
+  to be independent of amount of repetitions in P-RNTI monitoring.
+- Correction for handling crossover of File Change Notification (FCN) type of SIM refresh and Attach
+  procedure. With certain timings and conditions, UE found a cell and camped on it while SIM refresh
+  was still ongoing. This crossover was not always handled properly and RRC connection establishment
+  for Attach procedure was not triggered correctly.
+
+*** Limitations
+***************
+- TLS/DTLS
+    - Up to three simultaneous TLS/DTLS connections are possible.
+    - Server certificate expiry time is not verified.
+    - pkcs#8 is not supported.
+    - Absolute maximum number of supported credentials is 32. The actual amount depends on size of
+      credentials as memory area reserved for credentials may be a limiting factor as well.
+    - DTLS supports PSK authentication only.
+    - 2kB secure socket buffer size.
+- Maximum number of raw sockets is 4.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+-
+
+*** MD5 checksums
+*****************
+
+72B3D7C.ipc_dfu.signed_1.1.0.ihex
+d2405a95ce98ffbc640f2d032b6bb9df (MD5)
+
+firmware.update.image.digest.txt
+359ac290fece944f3ba1a9c3d4446409 (MD5)
+
+firmware.update.image.segments.0.hex
+b659966670d6e83d244535b8502e9206 (MD5)
+
+firmware.update.image.segments.1.hex
+3008eee28fbdb303880c94e86070a058 (MD5)
+
+mfw_nrf9160_update_from_1.2.0_to_1.2.1.bin
+eddc98c5436758353aef200976143aeb (MD5)
+
+mfw_nrf9160_update_from_1.2.1-FOTA-TEST_to_1.2.1.bin
+53d6124b9f7da45ca626421d04093645 (MD5)
+
+mfw_nrf9160_update_from_1.2.1_to_1.2.1-FOTA-TEST.bin
+c63d0554e3ba35de0bdfc131da80afb3 (MD5)
+
+
+*** mfw_nrf9160_1.2.0
+*********************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 18, 19, 20, 25, 26,
+28 and 66.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 19, 20, 25, 26,
+28 and 66.
+
+This release is aligned with v1.2 of nRF91 AT command reference guide.
+
+It is recommended to use the latest version of nRF Connect and nRF Connect Programmer tools.
+
+*** New functionality
+*********************
+- New AT command AT%XMODEMUUID for requesting unique modem build id.
+- New AT command AT%XANTCFG added for routing signal from ANT input to AUX output inside SIP module.
+- New AT command AT%EMPR added for maximum TX power reduction.
+- New AT command AT%XFILEWRITE added for writing given content to a file.
+- New AT command AT+CEINFO added for reading coverage enhancement information.
+- New AT command AT%XAPNSTATUS for disabling/enabling APN.
+- New AT command AT+ODIS added for reading and writing manufacturer’s information.
+- New functionalities for AT command AT%XRFTEST; AFC correction and measurement, GPS SNR test
+  frequency change possibility, Support for 5MHz cell BW in TX modem.
+- New functionalities for AT command AT+CFUN; AT+CFUN=40 for UICC deactivation and AT+CFUN=41 for
+  UICC activation. With UICC activation functionality it would be possible to activate UICC card and
+  read data fields from it without starting LTE stack operations.
+- Support of new socket option for disabling PING responses.
+- Support of new socket option for disabling TCP RST and ICMP destination unreachable sending.
+- Support of new socket option for possibility for manually entering DNS address.
+- Support for reading EPCO option with AT%EPCO.
+- Power supply / Battery voltage monitoring and automatic modem deactivation if voltage level is
+  below configured limit.
+- Support added for new cipher suite sha384ECDSA.
+- Support for selecting (D)TLS cipher suite candidate list during connection establishment.
+- GNSS factory almanac file can be written to filesystem in production by using AT%XFILEWRITE.
+
+*** Changes
+***********
+- E-UTRA Cat-M1 Band 14 support removed.
+- MbedTLS update to version 2.16.3.
+- Improvements to socket closed notification in case of TCP or UDP connection is closed.
+- Enhancement to AT%XSIM UICC status indications.
+- Enhancement to AT+CLCK command by adding more facilities.
+- Enhance AT+CPIN? support to network personalization locks.
+- Removed redundant AT+CEDRXP notifications.
+- Radio Policy Manager (RPM) functionality disabled based on specific operator UICC.
+- Support for optional PLMN search after ATTACH/TAU abnormal cases C, B and D described in 3GPP TS
+  24.301 in chapters 5.5.1.2.6, 5.5.1.3.6, 5.5.3.2.6 and 5.5.3.3.6.
+- Improvement for handling of cell lost during manual PLMN search.
+- Improvement for handling of shared network data on NAS level.
+- Improvement for initial PLMN selection after startup.
+- Improvements to cell selection and socket handling after RRC connection release.
+- Improvement to stored history information usage in NAS initiated cell selection.
+- Improvements for maximum timing advance functionality and timings.
+- Improved mobility and paging reception in RRC IDLE extended DRX when in weak field: UE executes
+  mobility related procedures more efficiently to guarantee monitoring of all paging occasions from
+  Paging Time Window.
+- Improvement for use case if network does not release RRC connection after switch off Detach has
+  been sent to network, UE will initiate shut down.
+- Threshold adjustments of entering OUT_SYNC -state in Radio Link Monitoring when in RRC Connected
+  mode.
+- Improved PDSCH decoding performance in low SNR scenario in RRC Connected mode when MBMS subframes
+  are enabled.
+- Improved functionality of (D)TLS session cache over power off.
+- TCP window size adjusted.
+- GNSS signal acquisition speed-up for faster time-to-first-fix in different scenarios.
+- GNSS tracking performance improvements for sensitivity and accuracy.
+- GNSS almanac and health data handling improvements.
+- GNSS Hot and Cold start acquisition sensitivity and time-to-first-fix improvements.
+- GNSS power consumption optimizations.
+- GNSS and LTE interoperability clock accuracy improvements.
+- NB-IoT stability improvements for scheduling of system information reception occasions.
+- NB-IoT performance and power saving improvements and optimizations system information reception.
+- NB-IoT improvements to clock accuracy during sleep and uplink transmission timing accuracy.
+- NB-IoT performance improvements to operation when valid subframe bitmap is configured.
+- NB-IoT performance improvements to neighbor cell measurements and mobility procedures.
+
+*** Bug fixes
+*************
+- Fix for DTLS handshake error code identification, for more robust error detection and separation.
+- Fix and improvements for UICC timer management.
+- Fix for case where deep search commanded with AT command was not taken into use immediately during
+  an ongoing cell search.
+- Fix for case where a PLMN equivalent to RPLMN was not always selected if RPLMN was not available.
+- Fix for corner case where HPLMN was not always selected if found while searching already lower
+  priority PLMNs.
+- Fix for case where switch off Detach was not always signaled to network.
+- Equivalent PLMN list not to be used when selecting PLMN manually.
+- Fix for Attach, TAU and Service request initiation conditions related to T3346. The timer was not
+  always correctly checked depending on the setting of NAS Signaling Low Priority Indicator.
+- Fix for handling of File Change Notification type of SIM refresh when Radio Policy Manager related
+  files were updated.
+- Fix for decoding of Primary-DNS Address. The address was considered to be invalid if NAK code was
+  received.
+- Fix for corner case where UE selected HPLMN during Higher Priority PLMN search while in different
+  country.
+- Fix for Mobile Country Code handling in countries that have multiple MCCs.
+- Correction for PLMN selection, where equivalent PLMN could have been selected even PLMN selection
+  already failed to RPLMN.
+- Correction to connection establishment timer handling in case of SI refresh.
+- Stability improvement fix to RLF due to RLC max retransmissions.
+- Stability improvement fix to status prohibit timer handling crossover case.
+- Stability improvement fix in case of EAB refresh indication crossover with RRC connection
+  establishment initiation.
+- Stability improvement fix for modem UART tracing during RF Rx.
+- Correction for use case of RRC Connection Re-establishment where two cells have similar timing and
+  first one is faded away. UE did not always select the better cell for RRC Connection
+  Re-establishment.
+- Correction for RRC Connection Reconfiguration when timing of the measurements overlaps with RRC
+  Connection Reconfiguration message reception.
+- Correction for use case when neighbor cell measurements performed by UE are too close to each
+  other (next gap starts when processing of earlier measurement results are still ongoing).
+- Fixed refreshing of SIs if RRC establishes a connection while UE is waiting for BCCH modification
+  period boundary to refresh the SIs indicated.
+- Correction for a use case where user data was lost during PSM entry, when PSM active time was
+  configured to zero length.
+- Correction for a use case where Attach was not initiated if SIM card was changed while card was
+  suspended.
+- Fix for handling of full File Change Notification (FCN) type of SIM refresh.
+- Fix for use case of correctly handling RRC connection establishment and SIM refresh.
+- Correction for a use case where UE did not always wake from PSM if EAB was active.
+- Correction for possible misalignment in MPDCCH search space detection, UE had possibility to start
+  MPDCCH monitoring too early.
+- Correction for possible UE reset in case RRC Connected mode DRX is in use and UE transmits
+  Scheduling Request right after DRX onDuration period is over.
+- Correction for possible UE reset in RRC Connected mode when longer Timing Advance is in use and
+  Handover to another cell is executed while transmissions are done with repetitions.
+- NB-IoT stability improvement and correction to hyper-SFN handling.
+- Stability correction to behavior when RRC connection establishment fails consecutively on same
+  cell.
+- Stability correction to use case of EAB refresh crossover with cell reselection.
+- Stability improvement correction for use case when response to paging fails occasionally if page
+  is received during background PLMN search.
+- Correction for PDN deactivation handling and shared CID0/CID1 contexts.
+- Correction for encoding of SMS TPDU TLV Length in the SMS-PP data download envelope.
+- Correction for File Change Notification type of SIM refresh functionality. Permission now always
+  granted for updating files that do not affect ongoing functionality.
+
+*** Limitations
+***************
+- TLS/DTLS
+    - Up to three simultaneous TLS/DTLS connections are possible.
+    - Server certificate expiry time is not verified.
+    - pkcs#8 is not supported.
+    - Absolute maximum number of supported credentials is 32. The actual amount depends on size of
+      credentials as memory area reserved for credentials may be a limiting factor as well.
+    - DTLS supports PSK authentication only.
+    - 2kB secure socket buffer size.
+- Maximum number of raw sockets is 4.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+-
+
+*** MD5 checksums
+*****************
+
+72B3D7C.ipc_dfu.signed_1.1.0.ihex
+d2405a95ce98ffbc640f2d032b6bb9df (MD5)
+
+firmware.update.image.digest.txt
+cf87ef66cd0f5e28a815b38a3b8a1ad1 (MD5)
+
+firmware.update.image.segments.0.hex
+4f34f7b0f73deabc078938980f674cfb (MD5)
+
+firmware.update.image.segments.1.hex
+2f40986579dc75a339791b72fd5340db (MD5)
+
+mfw_nrf9160_update_from_1.2.0-FOTA-TEST_to_1.2.0.bin
+2e10b3f355a4e3b06ded6c1f0337acca (MD5)
+
+mfw_nrf9160_update_from_1.2.0_to_1.2.0-FOTA-TEST.bin
+7880f86f729be63564f43d7d4c5afb95 (MD5)
+
+
+*** mfw_nrf9160_1.1.0
+*********************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 14, 17, 18, 19, 20, 25,
+26, 28 and 66.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 19, 20, 25, 26,
+28 and 66.
+
+This release is aligned with v1.1 of nRF91 AT command reference guide.
+
+It is recommended to use nRF Connect 3.3 and nRF Connect Programmer 1.3.1 tools. This will ensure
+the functionality of modem firmware downgrade prevention, when enabled. If old versions of tools are
+used, downgrade prevention may not be enabled.
+
+*** New functionality
+*********************
+- Inter frequency Idle mode mobility and cell reselection procedures.
+- Inter frequency Connected mode measurements, reporting and handover procedures.
+- RSRQ support in cell selection and re-selection.
+- SIB16 support.
+- SIM lock support.
+- Support for range extension for RSRP (-17..97), and RSRQ (-30..46) reporting and evaluation.
+- NB-IoT and eMTC MIB-NB/MIB peer message tracing for user-friendly UE monitoring.
+- NB-IoT, support for averaging Cell Search mode to detect weak cells.
+- Forced manual PLMN search.
+- Support for operator specific APN for initial PDN connection.
+- Support for new CGEV for IPv6 address failure.
+- Support for Add proprietary CGEV for EMMSM restriction status indication.
+- Support for AT+CSCON.
+- Support for %XRAI read command.
+- Support for reading current trace bitmap with %XMODEMTRACE.
+- Custom AT command for time and daylight saving.
+- Shortened SW and HW version support.
+- GNSS interoperability and tracking during LTE idle mode DRx and idle mode eDRx.
+- Separate activation/deactivation to GNSS and LTE stacks.
+- Modem FW downdgrade prevention can be controlled (permanently enabled) with Customer production
+  done %XPRODDONE AT command. Customer production done AT command shall be set before flashing
+  final modem firmware to activate downgrade prevention.
+
+*** Changes
+***********
+- GNSS signal acquisition speed-up for faster time-to-first-fix in different scenarios.
+- GNSS enhanced ground track performance in terms of position errors and fix availability in both
+  pedestrian and vehicular cases.
+- GNSS additional output flags in PVT notification message
+- GNSS AGPS assistance capability
+- eMTC-M1 connected mode eDRx disabled.
+- Improvements to multi-IMSI SIM card functionalities and crossover use cases.
+- Improvements to FOTA delta file handling operations.
+- Added additional read command for AT%XMAGPIO.
+- Improvement for accuracy of XVBAT in AT command result.
+- Added UDP socket closed notification.
+- Improvement to DL NAS PDU length check.
+- Pattern of periodic PLMN searches to be modified according to data profile.
+- NB-IoT, AFC estimation when cell is in performance degraded conditions.
+- NB-IoT, improvement to ontinue NPDCCH reception when DL allocation is received.
+- NB-IoT, improvements to receiver in low signal-to-noise ratio cases (AFC and NPDCCH reception).
+- Added reporting of proprietary failure causes to application client.
+- Optimization of the order of the LTE bands to be searched.
+- NB-IoT, Saturation logic improvements for RLF in high SINR and signal powers.
+- Neighbour cell measurements averaged with at least two measurement samples for reselection
+  evaluation instead of immediate evaluation of newly found neighbour cell in RRC Idle state.
+- Reduction of SIB reception time for cell selection or cell re-selection target cell, but following
+  CE mode A performance requirements.
+- LTE L1 level downlink and uplink throughput and bler information added as default output traces.
+- Current consumption optimized in LTE Connected state by avoiding unnecessary monitoring of
+  MPDCCHs.
+- Current consumption optimized on search of available PLMNs while in RRC Idle state.
+- 3GPP TS 36.331-13.7.0 introduced zeroing ("dummy") of DL hopping parameters in
+  RadioResourceConfigCommon in Handover. Support for applying these parameters if present in
+  Handover are removed.
+- Improved USAT command SEND SHORT MESSAGE handling.
+- Power consumption improvements to enter PSM also in case cell was lost just before PSM entry.
+- Number of public keys that can be stored in AT%XPMNG command is 10.
+- Absolute maximum number of supported credentials is increased from 16 to 32. The actual amount
+  depends on size of credentials as memory area reserved for credentials may be a limiting factor as
+  well.
+
+*** Bug fixes
+*************
+- Corrected wrong DNS error code when no network connection available.
+- Corrected wrong TLS send error code when LTE network connection is closed.
+- Location status event handling improvement towards UICC.
+- Robustness fix for UL Data sending problem during PSM period.
+- Fix for TMSI and last registered Local Area Identity (LAI) incorrectly cleared in startup.
+- Correction to no AT command response when deactivation requested for EPS Bearer context that is
+  already deactivated.
+- Fix for crossover EMM activation and deactivation scenario where EMM deactivation did not
+  proceeded.
+- Fix for EMM denies SIM refresh procedure when in de-registered state.
+- Improvement correction for PSM not re-activated after HPPLMN search activity.
+- Improvement for detection of need for SIM refresh.
+- Improvement for FOTA flash operations when crossover with RRC connection establishment.
+- Crossover scenario correction for detach when Flight Mode activated during Forced PLMN search.
+- Correction for preserving initial PLMN selection history.
+- Fix for EMM incorrectly stopped at initial PLMN selection and Attach.
+- Correction for unnecessary TAU after completion of forced manual PLMN search.
+- Improvements to stop RRC connection establishment procedure if not required to proceed further.
+- Correction for forbidden PLMN and attach in manual PLMN selection use case.
+- Fix for Service Request (SR) attempt counter incorrectly incremented in Paging use case.
+- Correction for background PLMN search discontinuity after TAU.
+- Fixed incorrect ISO7816 file ID derived by +CRSM.
+- NB-IoT fixes to uplink timing adjustment and step size in the first transmission.
+- NB-IoT correction for downlink gap configuration computations.
+- NB-IoT stability improvements in NPDCCH monitoring when T=4.
+- Improvement for CQI in certain signal conditions.
+- Improvement for GPS gain control.
+- NB-IoT fix for irregular behavior of DC estimate.
+- NB-IoT fix for DCI_N0 decoded after cell lost and recovery.
+- Improvement correction for unexpected RSRP level drop after return to RRC idle.
+- NB-IoT fix for erroneous DL data discarding after T3440 expiry.
+- Black list reconfiguration correction in connected mode measurements.
+- Improvement correction to connected mode measurement a3-Offset handling.
+- Correction to DL AMD PDU segment reassembly.
+- Correction to SIB1 validity check in case of overlapping frequencies.
+- More robust DCI detection when multiple MPDCCHs with same DCI type are decoded from same subframe.
+- Corrected crossover scenario when monitoring of PCCH and starting a MO data transfer collides.
+- Correction for handling serving cell in fast fading conditions upon eDRX PTW start.
+- With certain invalid UL subframe bitmaps in Cat-M1, there was possibility that UL timing was
+  adjusted autonomously during UL repetitions over 1 subframe, behavior corrected.
+- Corrected crossover problems in case RRC connection is released while connected mode mobilit
+  related procedures are ongoing.
+- Ignore uplink allocations not for MSG3 retransmissions when Contention Resolution on initial
+  network access is executed.
+- Improvements for modem filesystem handling and error prevention.
+- PDN ID related IP routing improvement, if specified PDN ID is not found, packets are dropped.
+- Fix crossover scenario when DL IP data queue is full and detach (with power off) is initiated.
+- Correction in PLMN search and cell re-selection crossover case.
+- Correction to exclusion timer expiry during cell selection.
+- Correction to cell re-selection and SI refresh crossover.
+- NB-IoT, error in connected mode DRX on-duration start time calculation possibly causing missed
+  NPDCCH allocations.
+- NB-IoT, AFC clipping improvements.
+- NB-IoT, fixed overflow in measurement value accumulation causing possibly wrong in/out sync
+  decision especially at high SINR.
+- Fix for MPDCCH PRB pair and aggregation level configuration when connection parameters are
+  updated.
+- Fix for scenario where UE attempted to register on such band that was not selected for operator.
+- Fix for scenario where UE reported old cell data even UE was not camped on cell.
+- Fix for detecting PSM configuration change done by application client.
+- Fix for handling of NAS downlink count due to which integrity check done for downlink NAS PDUs
+  failed.
+- Enabled usage of the longest eDRX configuration values in NB-IoT.
+- Correction to erroneous DL data discarding in case when part of PDU and same complete PDU is
+  received sequentially.
+- Correction to PLMN search result delivery in PLMN search and cell reselection crossover case.
+- Correction to SI reception during cell selection for RRC connection reestablishment.
+- Correction for unprotected DTLS Fatal Alert handling.
+
+*** Limitations
+***************
+- TLS/DTLS
+    - Up to three simultaneous TLS/DTLS connections are possible.
+    - Server certificate expiry time is not verified.
+    - pkcs#8 is not supported.
+    - Absolute maximum number of supported credentials is 32. The actual amount depends on size of
+      credentials as memory area reserved for credentials may be a limiting factor as well.
+    - DTLS supports PSK authentication only.
+    - 2kB secure socket buffer size.
+- Maximum number of raw sockets is 4.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+-
+
+*** MD5 checksums
+*****************
+
+72B3D7C.ipc_dfu.signed_1.1.0.ihex
+d2405a95ce98ffbc640f2d032b6bb9df (MD5)
+
+firmware.update.image.digest.txt
+d1e5f8cecb330061dea608c9545256e8 (MD5)
+
+firmware.update.image.segments.0.hex
+03b009bfff296cbe53400592842c96ff (MD5)
+
+firmware.update.image.segments.1.hex
+fea13233b6569b7fac1c32493d025e2d (MD5)
+
+mfw_nrf9160_update_from_1.1.0-FOTA-TEST_to_1.1.0.bin
+cffa317261305634098590a3e3e9d598 (MD5)
+
+mfw_nrf9160_update_from_1.1.0_to_1.1.0-FOTA-TEST.bin
+2f296a0f27a2fb1b9eb0b7d3dfa88f83 (MD5)
+
+
+*** mfw_nrf9160_1.0.1
+*********************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 14, 17, 18, 19, 20, 25,
+26, 28 and 66.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 19, 20, 25, 26,
+28 and 66.
+
+This release is aligned with v1.0 of nRF91 AT command reference guide.
+
+*** New functionality
+*********************
+-
+
+*** Changes
+***********
+-
+
+*** Bug fixes
+*************
+- UICC correction for handling current directory of SIM card.
+- Robustness improvement of possible post-FOTA actions.
+- Power consumption optimization fix.
+- Robustness improvement for file system accesses at system reset.
+- Reliability correction for consecutive TLS connections.
+
+*** Limitations
+***************
+- TLS/DTLS
+	- Up to three simultaneous TLS/DTLS connections are possible.
+	- Server certificate expiry time is not verified.
+	- pkcs#8 is not supported.
+	- Maximum total number of credentials to be stored is 16 (writing, reading, and deleting
+	  with AT%CMNG).
+	- DTLS supports PSK authentication only.
+- Inter-frequency mobility is not supported in Cat M1 mode.
+- Maximum number of raw sockets is 4.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+-
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.digest.txt
+80fb2f505ffa3db13626ec5d9f23245c (MD5)
+
+firmware.update.image.segments.0.hex
+d1f3c7e2437fafa5863643b1926f763f (MD5)
+
+firmware.update.image.segments.1.hex
+ac9563025e3a360d1ac33d9d580d2141 (MD5)
+
+72B3D7C.ipc_dfu.signed_1.0.0.ihex
+584232ad455f16fdea96d5fda9f7b500 (MD5)
+
+mfw_nrf9160_update_from_1.0.0_to_1.0.1.bin
+b6615bfbd3ffceb820257b251a935531 (MD5)
+
+
+*** mfw_nrf9160_1.0.0
+*********************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 14, 17, 18, 19, 20, 25,
+26, 28 and 66.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 19, 20, 25, 26,
+28 and 66.
+
+This release is aligned with v1.0 of nRF91 AT command reference guide.
+
+*** New functionality
+*********************
+- Cat M1 operation on E-UTRA bands 18 and 19.
+- Cat NB1 operation on E-UTRA bands 19.
+- Support for simultaneous GNSS and LTE (M1 or NB1) system modes. GPS reception during
+  LTE Power Saving Mode (PSM) active periods.
+- GPS duty-cycling during continuous positioning for current consumption optimizing.
+- Downgrade prevention to older firmware versions activated.
+- Limited support for controlling external MIPI RFFE components (AT cmd interface).
+- Support of firmware update over-the-air (FOTA).
+- AT%XMONITOR command for reading modem parameters.
+- IPv6 address resolution/refresh failure notification when using raw socket API.
+- Radio Policy Manager (GSMA RPM for advanced handling of NAS reject scenarios).
+- Support for DNS server address setting by application.
+- AT%SDATAPRLF for controlling timing of periodic cell searches when UE is not registered.
+- Support for AT+CGAUTH (PAP and CHAP support).
+
+*** Changes
+***********
+- Use of Cat-NB1 is blocked with Verizon subscriptions.
+- PSM timer value setting (AT+CPSMS) limited with Verizon subscriptions.
+- Several minor improvements to GPS reception.
+- Socket closed notification added.
+- TLS credentials storage space increased.
+- Parameter options added to AT+XPRODDONE.
+- Current consumption optimizations.
+- Improvements to PLMN search in idle mode.
+- Cat M1 periodic CSI reporting in mode 1-1 reported values fine tuned for TM9.
+- Minor fine tuning of Cat M1 cell search and neighbor detection performance in coverage
+  extension.
+- Minor M1 RX performance improvement when operating on two nearest narrowbands of the center
+  frequency of the cell.
+- Reported neighbor measurement accuracy optimized in Cat M1 RRC Connected mode when DRX
+  configured.
+- Improvements to own cell measurements in Cat NB1.
+- Improved detection of Cat NB1 loss of cell.
+- Improvements to triggering of Cat NB1 RRC idle mode measurements.
+- SIM refresh allowed during cell selection.
+- Correction to detection of data connection during IMSI refresh.
+- Improvement to NAS DL count estimation.
+
+*** Bug fixes
+*************
+- Minor GPS robustness and performance fixes.
+- Fix to receiver AGC state store functionality.
+- Stability improvement related to USAT SEND DATA command.
+- Fix to file selection in AT+CRSM.
+- Handling of NAS signalling low priority within AT+CGDCONT.
+- PDN ID related IP routing correction.
+- Corrections to TLS and DNS error codes.
+- Cat M1 neighbour measurement accuracy improved in RRC Connected mode measurement gaps.
+- Cat M1 robustness improvement when UE operates in coverage extension and invalid subfame
+  bitmap is configured by eNb.
+- Cat M1 RRC Connection Establishment reliability improved in coverage extension upon T300
+  expiration or after previously failed Establishment (T300 expired).
+- Robustness of Cat M1 RRC Connected mode measurements for several neighbours improved during
+  data transfer.
+- Fix to Cat M1 RSRP averaging filter length (Cat M1 CTC 6.1.10).
+- Robustness improvement related to Cat M1 RRC Connected mode handover to a synchronized cell.
+- Corrected possible miss of Cat M1 RLC SN block in case of extended coverage with DL PDSCH
+  repetitions and invalid BL/CE DL subframes in the start of the repeated PDSCH reception.
+- Stability improvement to colliding M1 paging monitoring and cell reselection SI reception.
+- Fix to M1 PUSCH transmission with repetitions when consecutive invalid BL/CE UL subframes
+  present.
+- Robustness improvement to M1 page reception from the first extended DRX Paging Time Window
+  after RRC Connection release.
+- M1 stability improvements to cell reselection to weak cell.
+- M1 RRC Connected mode neighbor measurement and handover related robustness improvements.
+- Fixes to NB1 connected mode RACH.
+- Fixes to NB1 post-eDRX gap measurements.
+- NB1 uplink power control fixes.
+- Bug fix to and performance improvements to NB1 DRX handling (post-gap re-synchronization,
+  path loss measurement).
+- Improvements and bug fixes to NB1 neighbor measurements and handling for UE mobility.
+- Minor improvements to NB1 mode RF transmission spectrum shape and behavior in transients.
+- Robustness improvements to DL data buffer.
+- Correction to T-reselection corner case.
+- Correction to EUTRA measurement report triggering condition for event a3.
+- Correction to EUTRA measurement object black cell list reconfiguration.
+- Fix to unsuccessful EMM deactivation.
+- Fix to collision of ongoing EPS bearer context procedures and client requests.
+- Fix for NAS timer expiry handling while in offline mode.
+- Fix related to updating of throttling timer value between re-attempts.
+- Fix to handling of zero length DL NAS message.
+- Fix to mapping of received invalid eDRX cycle values to valid values.
+- Fix to PDN ID related IP routing.
+- APN operator ID handling fix.
+- Fix to missing response in manual PLMN search/selection procedure.
+- Allow PDN connection parameter modifications after Attach interrupt.
+- Carrier specific APN reading with AT cmd from the stored APN table.
+- Carrier specific Class3 APN modification triggers PDN connection activation when there is
+  no active PDN connection to Class3 APN.
+- T3440 to be started after CP service reject with cause #9, #10 or #40.
+
+*** Limitations
+***************
+- TLS/DTLS
+	- Up to three simultaneous TLS/DTLS connections are possible.
+	- Maximum server certificate chain size has been limited to 4kB.
+	- Server certificate expiry time is not verified.
+	- pkcs#8 is not supported.
+	- Maximum total number of credentials to be stored is 16 (writing, reading, and deleting
+	  with AT%CMNG).
+	- DTLS supports PSK authentication only.
+- Inter-frequency mobility is not supported in Cat M1 mode.
+- Maximum number of raw sockets is 4.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+-
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.digest.txt
+e219b1153c75fcf593042052b43ec536 (MD5)
+
+firmware.update.image.segments.0.hex
+a93cc4cc0b984354dd69cb5c6026f09c (MD5)
+
+firmware.update.image.segments.1.hex
+1f65f17bb2f7803e842673baef573863 (MD5)
+
+72B3D7C.ipc_dfu.signed_1.0.0.ihex
+584232ad455f16fdea96d5fda9f7b500 (MD5)
+
+
+*** mfw_nrf9160_0.7.0-29.alpha
+******************************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 14, 17, 20, 25, 26, 28,
+and 66.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 2, 3, 4, 5, 8, 12, 13, 17, 20, 25, 26, 28,
+and 66.
+
+This release is aligned with v0.9 of nRF91 AT command reference guide.
+
+Note. After updating to this version downgrading to older mfw-m1_nrf9160_* versions is not
+      possible.
+
+*** New functionality
+*********************
+- Operation on E-UTRA bands 2, 5, 12, 14, 17, 25, 26, and 66.
+
+*** Changes
+***********
+- Firmware flashing (DFU) speed improved.
+
+*** Bug fixes
+*************
+- Default system mode changed to be always Cat M1 after upgrading from mfw-m1_nrf9160_* versions.
+- Change concerning limiting count of simultaneous ESM data procedures.
+- Fix to ESM confirm/reject of UL user data in specific situations.
+- Robustness improvements to layer 2 reception buffer.
+- NB1 stability improvements.
+- Fixes to GPS/NMEA output functionality and syntax.
+- Fixes to GPS heading output range.
+
+*** Limitations
+***************
+- Device management is not enabled.
+- Firmware update over-the-air (FOTA) not supported.
+- nRF9160 power consumption has not been fully optimized.
+- Performance (e.g. operation in weak signal conditions and data throughput) has not been
+  fully optimized.
+- TLS/DTLS
+	- Up to three simultaneous TLS/DTLS connections are possible.
+	- Maximum server certificate chain size has been limited to 4kB.
+	- Server certificate expiry time is not verified.
+	- pkcs#8 is not supported.
+	- Maximum total number of credentials to be stored is 16 (writing, reading, and deleting
+	  with AT%CMNG).
+	- Maximum number of type 0, 1, or 2 credentials to be stored is 8.
+	- DTLS supports PSK authentication only.
+- Maximum number of raw sockets is 4.
+- Inter-frequency mobility is not supported.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+- First GPS fixes after device startup can have larger position error and incorrect time stamp.
+- In certain Cat NB1 networks there is unreliability related to transferring large amounts of
+  downlink data. The issue is being investigated in co-operation with the network equipment
+  vendor.
+- Exceeding the limits of number of stored TLS/DTLS credentials may cause faulty behavior or
+  degraded performance in certain use cases. Please delete necessary amount of credentials
+  with AT%CMNG to align with the limitations defined above.
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.hex
+6665972eb317d6b2d951860b6765ec15 (MD5)
+
+firmware.update.image.digest.txt
+f90927f3f6d2eb754559ed622e550ea2 (MD5)
+
+72B3D7C.ipc_dfu.signed.ihex
+c2e4f493d2a80f637ed8c1e8d3de0faf (MD5)
+
+
+*** mfw_nrf9160_0.7.0-15.alpha
+******************************
+
+The mfw_nrf9160 is the firmware for the modem subsystem of nRF9160. It supports 3GPP LTE
+release 13 Cat-M1 and Cat-NB1 standards, and GPS L1C/A positioning.
+
+Cat-M1 operation is enabled on E-UTRA Bands 1, 3, 4, 8, 13, 20, and 28.
+
+Cat-NB1 operation is enabled on E-UTRA Bands 1, 3, 4, 8, 13, 20, and 28.
+
+This release is aligned with v0.9 of nRF91 AT command reference guide.
+
+Note. After updating to this version downgrading to older mfw-m1_nrf9160_* versions is not
+      possible.
+
+In this release note changes compared to mfw-m1_nrf9160_0.6.8-131.alpha are listed in more detail, while Cat NB1 and GPS are introduced as new features.
+
+*** New functionality
+*********************
+- Cat NB1 (NB-IoT) support.
+- GPS L1C/A signal support with 12 tracking channels. GPS navigation can be activated when
+  the LTE modes are deactive.
+- System mode selection with AT%XSYSTEMMODE.
+  Note. UE mode of operation is reset to the default values always when changing LTE system mode
+  (M1: CS/PS mode 2, NB1: PS mode 2). The mode of operation can be reset with AT+CMODE.
+- Thermal protection supported including temperature indications.
+- Support for setting/reading of time (AT+CCLK).
+- Interactive mode for SMS sending.
+- Support for handling external IP stack IPv6 address failure (AT%XIPV6FAIL).
+- Reading of operator ID (AT%XOPERID).
+- SNR notifications (AT%XSNRSQ).
+- Run-time configurable Paging Time Window.
+- Support for carrier configurable initial PDN connection APN.
+
+*** Changes
+***********
+- Number of simultaneous DRBs limited.
+- APN-AMBR IE support for Modify EPS Bearer Context Request.
+- Immediate NAS Transport reject if SMS is not possible in current PLMN.
+- Optimization to PLMN selection process.
+- Changes to handling of partial results in manual PLMN search.
+- Carrier specific NAS signalling restrictions.
+- Support for several raw sockets.
+- DL data performance improvements when narrowband hopping and repetitions.
+
+*** Bug fixes
+*************
+- Robustness of RRC connection re-establishment improved.
+- Fix to RRC connection release abort.
+- Fix to out of service timeout handling when eDRX is configured.
+- Fix to handover to shared network.
+- Unexpected Detach procedure avoidance when entering DEREGISTERED state.
+- Correction to calculation of active PDN connections.
+- Change to conditions for sending ESM PDU.
+- Prevent looping Attach attempts to HPLMN when cause #11 reject.
+- Fixes related to EPS bearer contexts.
+- PCO and NSLPI handling fixes in PDN Connectivity Reject.
+- Changes to handling of network initiated Detach.
+- Fix to AT+COPS set and read modes.
+- Fix related to PLMN mode setting to manual at start-up.
+- Fix to SMS acknowledgement procedure.
+- TLS/DTLS specific robustness fixes.
+- Performance, reliability, and stability improvements.
+
+*** Limitations
+***************
+- Device management is not enabled.
+- Firmware update over-the-air (FOTA) not supported.
+- nRF9160 power consumption has not been fully optimized.
+- Performance (e.g. operation in weak signal conditions and data throughput) has not been
+  fully optimized.
+- TLS/DTLS
+	- Up to three simultaneous TLS/DTLS connections are possible.
+	- Maximum server certificate chain size has been limited to 4kB.
+	- Server certificate expiry time is not verified.
+	- pkcs#8 is not supported.
+	- Maximum total number of credentials to be stored is 16 (writing, reading, and deleting
+	  with AT%CMNG).
+	- Maximum number of type 0, 1, or 2 credentials to be stored is 8.
+	- DTLS supports PSK authentication only.
+- Maximum number of raw sockets is 4.
+- Inter-frequency mobility is not supported.
+- User plane data is supported in Cat M1 mode only.
+
+*** Known Issues
+****************
+- In certain Cat NB1 networks there is unreliability related to transferring large amounts of
+  downlink data. The issue is being investigated in co-operation with the network equipment
+  vendor.
+- Exceeding the limits of number of stored TLS/DTLS credentials may cause faulty behavior or
+  degraded performance in certain use cases. Please delete necessary amount of credentials
+  with AT%CMNG to align with the limitations defined above.
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.hex
+9917c561c643640ccbce1d957d5524e9 (MD5)
+
+firmware.update.image.digest.txt
+12fbf26ae37df15208c47770700e02c0 (MD5)
+
+72B3D7C.ipc_dfu.signed.ihex
+1e0ff8c72217309b52fed1a653f22c61 (MD5)
+
+
+*** mfw-m1_nrf9160_0.6.8-131.alpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for nRF9160 modules.
+
+Operation is enabled on E-UTRA Bands 3, 4, 13, and 20.
+
+*** New functionality
+*********************
+-
+
+*** Changes
+***********
+- PSM initialization modified to overcome interoperability issue with certain networks.
+- Workaround to prevent LTE modem stopping when debugging through SWD interface
+  (ref. nRF9160 rev. Engineering A anomaly #17).
+- Workaround to improve stability in application domain system on idle or system off
+  conditions.
+- %XMAGPIO AT command format update (AT cmd ref guide v0.7.1). Backward compatibility to
+  the old format maintained.
+- Accuracy improvements to temperature and battery measurements.
+- Updates to intra frequency handover.
+- Support for configuration in which application does not allocate memory for modem logging.
+
+
+*** Bug fixes
+*************
+- PS_DO handling improvement in UICC (SIM PIN code).
+- Fix related to triggering of RLF.
+- Fix to stopping of NAS initiated stopping of cell selection.
+- Improvements to band lock.
+- Fix to PCO IE handling in PDN connectivity reject.
+- Fix to PTW start calculation in eDRX.
+- Narrowband selection fixed on PUSCH transmission with repetitions and hopping enabled.
+- Stability improvement related to neighbor measurements in RRC connected mode.
+- Performance, reliability, and stability improvements.
+
+*** Limitations
+***************
+- Device management is not enabled.
+- nRF9160 power consumption has not been fully optimized.
+- Performance (e.g. operation in weak signal conditions and data throughput) has not been
+  optimized.
+- Up to three simultaneous TLS/DTLS connections are possible.
+- TLS
+	- Maximum server certificate chain size has been limited to 4kB.
+	- Complete server certificate verification is not supported.
+	- pkcs#8 is not supported.
+- DTLS supports PSK authentication only.
+- Firmware update over-the-air (FOTA) not supported.
+- Thermal protection has not been activated. Temperature indications are not sent either.
+
+*** Known Issues
+****************
+- This firmware version cannot handle TLS/DTLS Pre-shared keys that have been provisioned
+  with mfw-m1_nrf9160_0.6.6-13.prealpha or older version. The keys must be reprovisioned
+  using this version.
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.hex
+2a502241cdc7e5bad82b40854feeefa7 (MD5)
+
+firmware.update.image.digest.txt
+c76f0bd09c848d6bb6a918d46ea77e23 (MD5)
+
+72B3D7C.ipc_dfu.signed.ihex
+1e0ff8c72217309b52fed1a653f22c61 (MD5)
+
+
+*** mfw-m1_nrf9160_0.6.8-30.alpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for nRF9160 Dev2 modules.
+
+Operation is enabled on E-UTRA Bands 3, 4, 13, and 20.
+
+*** New functionality
+*********************
+- Detach and re-attach after the last PDN connection disconnected.
+- Improved handling of situations where AT client cannot be served in decent time.
+- Periodical storing of LTE security keys.
+- Connected mode mobility: intra frequency handover.
+- Connected mode measurements: Events A1, A2, and A3, periodical (reporting of strongest
+  cells).
+- Handling of USIM PIN2.
+- Support for SMS RP-SMMA messaging.
+- Logging (tracing) via application domain.
+- Reading of battery voltage.
+- Reading of internal temperature of the module.
+- Carrier specific configurations related to PDN connection parameters.
+- Carrier specific configurations related to NAS procedures.
+
+*** Changes
+***********
+- Prevention of reading of TLS Client certificate, Client private key, and Pre-shared Key.
+- Power management improvements for eDRX periods.
+- PUSCH transmission power fine tuned with more accurate delta_tf (3GPP 36.213 - ch. 5.1.1).
+- Improvements to UICC polling and presence detection.
+- Handling IPv6 address lifetime.
+- Support for 4 DNS server addresses.
+
+*** Bug fixes
+*************
+- Combined TAU to be initiated if periodic TAU timer expires during PSM active.
+- Synchronization to serving cell after failing cell reselection in RRC IDLE state when
+  eDRX periods used.
+- Stability improvement when serving cell signal drops suddenly to very low SNR without
+  Radio Link Failure being triggered.
+- Narrowband selection for narrowband hopping MPDCCH repetitions when P-RNTI is being
+  monitored (paging reception in RRC IDLE state).
+- More robust paging reception in idle eDRX scenarios.
+- Fix to serving PLMN entry reporting in idle eDRX scenarios.
+- Usage of Access Barring types fixed at NAS.
+- Fix for Dedicated EPS Bearer Context activation when overlapping with Default EPS Bearer
+  Context activation.
+- Fixed encoding of Mobile Identity IE for M-TMSI used in NAS signaling.
+- Paging response to be aborted after responding failed for example due to radio
+  circumstances.
+- Fixed issue of accepting NULL integrity algorithm in NAS.
+- Performance, reliability, and stability improvements.
+
+*** Limitations
+***************
+- Device management is not enabled.
+- nRF9160 power consumption has not been fully optimized.
+- Performance (e.g. operation in weak signal conditions and data throughput) has not been
+  optimized.
+- Up to three simultaneous TLS/DTLS connections are possible
+- TLS
+	- Maximum server certificate chain size has been limited to 4kB
+	- Complete server certificate verification is not supported
+	- pkcs#8 is not supported
+- DTLS supports PSK authentication only
+- Inter-frequency mobility is not supported.
+- Thermal protection has not been activated. Temperature indications are not sent either.
+
+*** Known Issues
+****************
+- This firmware version cannot handle TLS/DTLS Pre-shared keys that have been provisioned
+  with mfw-m1_nrf9160_0.6.6-13.prealpha or older version. The keys must be reprovisioned
+  using this version.
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.hex
+26b6555203561400a1a6e2cb8d44f440 (MD5)
+
+firmware.update.image.digest.txt
+9082c3bdecd8473ac11d0bd37ad54e4b (MD5)
+
+72B3D7C.ipc_dfu.signed.ihex
+1e0ff8c72217309b52fed1a653f22c61 (MD5)
+
+*** mfw-m1_nrf9160_0.6.6-46.prealpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for nRF9160 Dev2 modules.
+
+Operation is enabled on E-UTRA Bands 3, 4, 13, and 20.
+
+*** New functionality
+*********************
+- Encrypted storage TLS Client certificate, Client private key, and Pre-shared Key
+  (Note. It is still possible to read them with AT commands.)
+
+*** Changes
+***********
+- Stability improvements to operation in DCDC regulator mode
+- Allowed bands limited
+
+*** Bug fixes
+*************
+- Fix to writing to non-volatile memory in CFUN=0
+- Several bug fixes improving reliability.
+
+*** Limitations
+***************
+The release is meant to be used on engineering samples.
+It includes the following limitations:
+	- Device management is not enabled.
+	- nRF9160 power consumption has not been fully optimized.
+	- It is not recommended to use application subsystem idle state with this
+	  version.
+	- Performance (e.g. operation in weak signal conditions and data throughput)
+	  has not been optimized.
+	- Handover (in connected mode) is not supported.
+	- Up to three simultaneous TLS/DTLS connections are possible
+	- TLS
+		- Maximum server certificate chain size has been limited to 4kB
+		- Complete server certificate verification is not supported
+		- pkcs#8 is not supported
+	- DTLS supports PSK authentication only
+	- Content of inter-frequency cell re-selection parameters are not supported.
+
+*** Known Issues
+****************
+There are no known issues in this release.
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.hex
+01d6b0f068642eb4f6c3eb15e4453705 (MD5)
+
+firmware.update.image.digest.txt
+9db52268cdb83476ccf884d5673828d0 (MD5)
+
+flash_modem.bat
+cecb012891aee8c4b0396bb63e75f207 (MD5)
+
+
+*** mfw-m1_nrf9160_0.6.6-13.prealpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for nRF9160 Dev2 modules.
+
+*** New functionality
+*********************
+PLMN specific T3402 support for multiple PLMNs.
+GPIO controlled antenna tuner.
+Support for device RF testing (RF path external to the module).
+
+*** Changes
+***********
+RRC idle state current consumption optimizations.
+Optimizations to cell selection in weak fields.
+Improvements to L2 buffer handling.
+
+*** Bug fixes
+*************
+Several bug fixes improving reliability.
+
+*** Limitations
+***************
+The release is a pre-alpha release and meant to be used on engineering samples.
+It includes the following limitations:
+	- Device management is not enabled.
+	- nRF9160 power consumption has not been optimized.
+	- It is not recommended to use application subsystem idle state with this
+	  version.
+	- Performance (e.g. operation in weak signal conditions and data throughput)
+	  has not been optimized.
+	- Handover (in connected mode) is not supported.
+	- Up to three simultaneous TLS/DTLS connections are possible
+	- TLS
+		- Maximum server certificate chain size has been limited to 4kB
+		- Complete server certificate verification is not supported
+		- pkcs#8 is not supported
+	- DTLS supports PSK authentication only
+	- Confidentiality and authenticity of TLS/DTLS credentials and other
+	  provisioned data is not protected.
+	- Content of inter-frequency cell re-selection parameters are not supported.
+
+*** Known Issues
+****************
+There are no known issues in this release.
+
+*** MD5 checksums
+*****************
+firmware.update.image.digest.txt
+eb60685c0d2842e0a4d791151ddefc5e (MD5)
+
+firmware.update.image.hex
+9ee83b29e2d96096f15ac548adde5b2a (MD5)
+
+flash_modem.bat
+cecb012891aee8c4b0396bb63e75f207 (MD5)
+
+
+*** mfw-m1_nrf9160_0.6.5-25.prealpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for R&D configured Dev2 modules of nRF9160 Preview Development Kits.
+
+*** New functionality
+*********************
+None.
+
+*** Changes
+***********
+Carrier specific PCO changes.
+Optimized RRC Connected mode DRX operation.
+
+*** Bug fixes
+*************
+Stability improvements in Random Access procedure in low SNR.
+More accurate timing adjustments for SRS transmission.
+
+*** Limitations
+***************
+The release is a pre-alpha release and meant to be used on engineering samples.
+It includes the following limitations:
+	- Device management is not enabled.
+	- Firmware update is done via the modem debugger interface.
+	- Confidentiality and authenticity of TLS/DTLS credentials and other
+	  provisioned data is not protected in the R&D configuration.
+	- nRF9160 power consumption has not been optimized.
+	- Performance (e.g. operation in weak signal conditions and data throughput)
+	  has not been optimized.
+	- Handover (in connected mode) is not supported.
+	- Up to three simultaneous TLS/DTLS connections are possible
+	- TLS
+		- Maximum server certificate chain size has been limited to 4kB
+		- Complete server certificate verification is not supported
+		- pkcs#8 is not supported
+	- DTLS supports PSK authentication only
+	- Content of inter-frequency cell re-selection parameters are not supported.
+	- Some of the more advanced AT commands defined in 'nRF91 AT Commands' are
+	  indicative, and have not been tested in full coverage.
+
+*** Known Issues
+****************
+There are no known issues in this release.
+
+*** MD5 checksums
+*****************
+
+mfw-m1_nrf9160_0.6.5-25.prealpha.hex
+e7c1767eed457e645198f1e677ff1a24 (MD5)
+
+flash_modem.bat
+dbf36c79e00dbd10d1cf0769028013fd (MD5)
+
+fs_image.mfw-m1_nrf9160_0.6.5-25.prealpha.hex
+05fec1f1fe0cd7dba4d62b13a7100d15 (MD5)
+
+
+*** mfw-m1_nrf9160_0.6.5-9.prealpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for R&D configured Dev2 modules of nRF9160 Preview Development Kits.
+
+This release note describes differences to mfw-m1_nrf9120_0.3.4-82.prealpha.
+
+*** New functionality
+*********************
+Support Manual PLMN selection
+Support for maximum cell size
+Support for transmission modes 6 and 9
+SI refresh
+Extended access barring
+UE assistance information (Power preference)
+UE information procedure (RACH and RLF reports)
+NSLPI and dual priority
+
+*** Changes
+***********
+Optimization to band search and selection logic.
+
+*** Bug fixes
+*************
+Several changes improving reliability and performance.
+
+*** Limitations
+***************
+The release is a pre-alpha release and meant to be used on engineering samples.
+It includes the following limitations:
+	- Device management is not enabled.
+	- Firmware update is done via the modem debugger interface.
+	- Confidentiality and authenticity of TLS/DTLS credentials and other
+	  provisioned data is not protected in the R&D configuration.
+	- nRF9160 power consumption has not been optimized.
+	- Performance (e.g. operation in weak signal conditions and data throughput)
+	  has not been optimized.
+	- Handover (in connected mode) is not supported.
+	- Up to three simultaneous TLS/DTLS connections are possible
+	- TLS
+		- Maximum server certificate chain size has been limited to 4kB
+		- Complete server certificate verification is not supported
+		- pkcs#8 is not supported
+	- DTLS supports PSK authentication only
+	- Content of inter-frequency cell re-selection parameters are not supported.
+	- Some of the more advanced AT commands defined in 'nRF91 AT Commands' are
+	  indicative, and have not been tested in full coverage.
+
+*** Known Issues
+****************
+There are no known issues in this release.
+
+*** MD5 checksums
+*****************
+
+mfw-m1_nrf9160_0.6.5-9.prealpha.hex
+c63bd63b1fda1498fecee8d9be413f84 (MD5)
+
+fs_image.mfw-m1_nrf9160_0.6.5-9.prealpha.hex
+05fec1f1fe0cd7dba4d62b13a7100d15 (MD5)
+
+flash_modem.bat
+b9dcb14bb3b5e86cf6edf07e76e33278 (MD5)
+
+
+*** mfw-m1_nrf9160_0.6.1-9.prealpha
+************************************
+
+The mfw-m1 is the 3GPP LTE release 13 Cat-M1 firmware for the modem subsystem of nRF9160.
+
+This firmware version is for nRF9160 Dev2 modules.
+
+*** New functionality
+*********************
+None.
+
+*** Changes
+***********
+None.
+
+*** Bug fixes
+*************
+Production testing related fix.
+Minor power-up related fix.
+
+*** Limitations
+***************
+The release is a pre-alpha release and meant to be used on engineering samples.
+It includes the following limitations:
+	- Device management is not enabled.
+	- nRF9160 power consumption has not been optimized.
+	- It is not recommended to use application subsystem idle state with this
+	  version.
+	- Performance (e.g. operation in weak signal conditions and data throughput)
+	  has not been optimized.
+	- Handover (in connected mode) is not supported.
+	- Up to three simultaneous TLS/DTLS connections are possible
+	- TLS
+		- Maximum server certificate chain size has been limited to 4kB
+		- Complete server certificate verification is not supported
+		- pkcs#8 is not supported
+	- DTLS supports PSK authentication only
+	- Confidentiality and authenticity of TLS/DTLS credentials and other
+	  provisioned data is not protected.
+	- Content of inter-frequency cell re-selection parameters are not supported.
+	- Some of the more advanced AT commands defined in 'nRF91 AT Commands' are
+	  indicative, and have not been tested in full coverage.
+
+*** Known Issues
+****************
+There are no known issues in this release.
+
+*** MD5 checksums
+*****************
+
+firmware.update.image.digest.txt
+f361be6eb3dfef838edf5a3ab91b0b06 (MD5)
+
+firmware.update.image.hex
+cd3c549356a06e0aebbab73b357c22a8 (MD5)
+
